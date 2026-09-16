@@ -40,7 +40,7 @@
             <label class="sr-only" for="student-name">Nombre del estudiante</label>
             <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name">
             <button class="button button-coral" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
-            <p class="privacy-note">Tus datos se quedan en este dispositivo.</p>
+            <p class="privacy-note">Al finalizar podrás guardar tu resultado.</p>
           </div>
         </section>
 
@@ -74,9 +74,10 @@
           <p class="best-result hidden" id="best-result" role="status">Este es tu mejor resultado hasta ahora.</p>
           <div class="results-panel">
             <div class="big-score"><span>PUNTAJE FINAL</span><strong id="final-score">0</strong><small>puntos</small></div>
-            <div class="metrics"><div><strong id="final-correct">0/30</strong><span>aciertos</span></div><div><strong id="final-percent">0%</strong><span>precision</span></div><div><strong id="final-time">00:00</strong><span>tiempo</span></div><div><strong id="final-streak">0</strong><span>mejor racha</span></div></div>
+            <div class="metrics"><div><strong id="final-correct">0/30</strong><span>aciertos</span></div><div><strong id="final-errors">0</strong><span>errores</span></div><div><strong id="final-percent">0%</strong><span>precision</span></div><div><strong id="final-time">00:00</strong><span>tiempo</span></div><div><strong id="final-streak">0</strong><span>mejor racha</span></div></div>
           </div>
-          <div class="result-actions"><button class="button button-coral" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="button button-outline" id="print-button" type="button">Imprimir resultado</button></div>
+          <div class="result-actions"><button class="button button-coral" id="save-button" type="button">Guardar resultados <span>↓</span></button><button class="button button-outline" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="button button-outline" id="print-button" type="button">Imprimir resultado</button></div>
+          <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
         </section>
       </main>
       <footer><span>I.E. Jose Carlos Mariategui</span><span>Socchabamba · Ayabaca</span></footer>

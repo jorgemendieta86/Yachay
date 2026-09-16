@@ -20,3 +20,4 @@
 @media(max-width:760px){.quiz-head .kicker{font-size:12px}.difficulty{font-size:11px}.quiz-aside h2{font-size:32px}.tip{display:flex;font-size:15px}.live-stats strong{font-size:27px}.live-stats span{font-size:10px}}
 .brand{gap:16px}.brand img{height:60px;width:60px}.brand strong{font-family:Impact,'Arial Black',sans-serif;font-size:clamp(32px,4vw,52px);letter-spacing:.12em;line-height:.85;text-shadow:2px 2px 0 var(--yellow)}.brand small{font-size:13px;margin-top:7px}.brand:after{background:var(--coral);content:'';height:5px;margin-left:2px;width:30px}
 @media(max-width:760px){.brand{gap:10px}.brand img{height:52px;width:52px}.brand strong{font-size:30px}.brand small{font-size:10px}.brand:after{display:none}}
+.result-actions{align-items:center;flex-wrap:wrap}.result-actions button:disabled{cursor:default;opacity:.7}.save-status{color:var(--teal);font-size:14px;font-weight:700;min-height:20px;text-align:center}.save-status:empty{display:none}

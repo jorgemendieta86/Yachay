@@ -47,8 +47,9 @@ const storage = {
   }
 };
 const total = 30;
+const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
 const questionBank = questions.slice(0, total);
-let active = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false, elapsed = 0, timerId;
+let active = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false, elapsed = 0, timerId, resultSaved = false, resultSaving = false;
 let audioContext, gain, soundOn = true;
 const clickAudio = document.getElementById('click-audio');
 const shuffle = items => [...items].sort(() => Math.random() - 0.5);
@@ -59,7 +60,8 @@ function updateProgress(completed) { $('progress-bar').style.width = `${(complet
 function startQuiz() {
   const name = $('student-name').value.trim() || 'Estudiante';
   storage.set('yachay-student', name);
-  active = shuffle(questionBank); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
+  active = shuffle(questionBank); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0; resultSaved = false; resultSaving = false;
+  $('save-button').disabled = false; $('save-button').innerHTML = 'Guardar resultados <span>↓</span>'; $('save-status').textContent = '';
   $('intro-screen').classList.add('hidden'); $('results-screen').classList.add('hidden'); $('quiz-screen').classList.remove('hidden'); renderQuestion(); startTimer();
   playTone(392, .12, 'sine', .12);
   window.scrollTo({top: 0, behavior: 'smooth'});
@@ -82,7 +84,39 @@ function nextQuestion() { playTone(330, .09, 'sine', .1); current++; if (current
 function showResults() {
   clearInterval(timerId);
   $('quiz-screen').classList.add('hidden'); $('results-screen').classList.remove('hidden'); const name = storage.get('yachay-student', 'Estudiante'); const previous = Number(storage.get('yachay-best-score', 0)); const newBest = score >= previous;
-  storage.set('yachay-best-score', String(Math.max(score, previous))); $('result-name').textContent = name; $('final-score').textContent = score; $('final-correct').textContent = `${correct}/${total}`; $('final-percent').textContent = `${Math.round(correct / total * 100)}%`; $('final-time').textContent = formatTime(elapsed); $('final-streak').textContent = bestStreak; $('best-result').classList.toggle('hidden', !newBest); window.scrollTo({top: 0, behavior: 'smooth'});
+  storage.set('yachay-best-score', String(Math.max(score, previous))); $('result-name').textContent = name; $('final-score').textContent = score; $('final-correct').textContent = `${correct}/${total}`; $('final-errors').textContent = total - correct; $('final-percent').textContent = `${Math.round(correct / total * 100)}%`; $('final-time').textContent = formatTime(elapsed); $('final-streak').textContent = bestStreak; $('best-result').classList.toggle('hidden', !newBest); window.scrollTo({top: 0, behavior: 'smooth'});
+}
+function saveResults() {
+  if (resultSaved || resultSaving) return;
+  resultSaving = true;
+  const button = $('save-button');
+  const status = $('save-status');
+  button.disabled = true;
+  button.textContent = 'Guardando...';
+  status.textContent = 'Enviando tu resultado...';
+  const payload = {
+    nombre: storage.get('yachay-student', 'Estudiante'),
+    aciertos: correct,
+    errores: total - correct,
+    porcentaje: Math.round(correct / total * 100),
+    puntaje: score
+  };
+  fetch(resultsEndpoint, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  }).then(() => {
+    resultSaved = true;
+    resultSaving = false;
+    button.textContent = 'Resultado guardado';
+    status.textContent = 'Tu resultado fue enviado correctamente.';
+  }).catch(() => {
+    resultSaving = false;
+    button.disabled = false;
+    button.innerHTML = 'Guardar resultados <span>↓</span>';
+    status.textContent = 'No se pudo enviar el resultado. Inténtalo nuevamente.';
+  });
 }
 function ensureAudio() {
   if (audioContext) return true;
@@ -110,14 +144,14 @@ function toggleSound() {
   if (soundOn) playTone(392, .2, 'sine', .16);
 }
 function initYachay() {
-  const required = ['student-name', 'start-button', 'next-button', 'restart-button', 'sound-toggle', 'print-button', 'progress', 'timer'];
+  const required = ['student-name', 'start-button', 'next-button', 'restart-button', 'save-button', 'save-status', 'sound-toggle', 'print-button', 'progress', 'timer'];
   const missing = required.filter(id => !$(id) && id !== 'progress');
   if (missing.length) {
     document.body.insertAdjacentHTML('afterbegin', '<p class="app-error">No se pudo cargar el recorrido. Recarga la página para intentarlo nuevamente.</p>');
     return;
   }
   $('student-name').value = storage.get('yachay-student', ''); $('progress').setAttribute('aria-valuemax', total);
-  $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print()); $('student-name').addEventListener('keydown', event => { if (event.key === 'Enter') startQuiz(); });
+  $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('save-button').addEventListener('click', saveResults); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print()); $('student-name').addEventListener('keydown', event => { if (event.key === 'Enter') startQuiz(); });
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initYachay); else initYachay();
