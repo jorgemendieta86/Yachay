@@ -33,7 +33,7 @@ import { analogies } from '../data/analogies';
         <label for="student-name" class="sr-only">Nombre del estudiante</label>
         <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name" />
         <button class="primary-button" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
-        <p class="privacy-note">Tus datos se quedan en este dispositivo.</p>
+        <p class="privacy-note">Tu resultado se guardara automaticamente en Google Sheets.</p>
       </div>
     </section>
 
@@ -64,6 +64,7 @@ import { analogies } from '../data/analogies';
       <p class="eyebrow">RECORRIDO COMPLETADO</p>
        <h1 id="results-title">¡Buen trabajo, <span id="result-name">estudiante</span>!</h1>
        <p class="results-subtitle">Cada respuesta fue una nueva forma de mirar.</p>
+       <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
        <p class="best-result hidden" id="best-result" role="status">Este es tu mejor resultado hasta ahora.</p>
       <div class="results-panel">
         <div class="big-score"><span>PUNTAJE FINAL</span><strong id="final-score">0</strong><small>puntos</small></div>
@@ -75,7 +76,8 @@ import { analogies } from '../data/analogies';
   </main>
 
   <script define:vars={{ questions: analogies }}>
-    const allQuestions = questions;
+     const allQuestions = questions;
+     const resultsEndpoint = 'https://script.google.com/macros/s/AKfycby457yozqEFrJE9Eq-h7ICZWdp1izRAwYi4fSFvRvepRmGa-FaPZ-ggb96oQeRym7R6gA/exec';
     let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
      let audioContext, masterGain, soundOn = false;
      const totalQuestions = allQuestions.length;
@@ -110,21 +112,52 @@ import { analogies } from '../data/analogies';
        updateProgress(current + 1);
      }
     function nextQuestion() { current++; if (current >= activeQuestions.length) showResults(); else renderQuestion(); }
-     function showResults() {
-       quiz.classList.add('hidden'); results.classList.remove('hidden');
-       const name = localStorage.getItem('analogy-student') || 'estudiante';
+      async function saveResult(name) {
+        const saveStatus = $('save-status');
+        const result = {
+          fecha: new Date().toISOString(),
+          nombre: name,
+          aciertos: correct,
+          errores: totalQuestions - correct,
+          porcentaje: Math.round((correct / totalQuestions) * 100),
+          puntaje: score
+        };
+
+        saveStatus.textContent = 'Guardando resultado...';
+        saveStatus.className = 'save-status saving';
+
+        try {
+          await fetch(resultsEndpoint, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(result)
+          });
+          saveStatus.textContent = 'Resultado guardado en Google Sheets.';
+          saveStatus.className = 'save-status saved';
+        } catch (error) {
+          saveStatus.textContent = 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.';
+          saveStatus.className = 'save-status failed';
+          console.error('Error al guardar el resultado:', error);
+        }
+      }
+
+      function showResults() {
+        quiz.classList.add('hidden'); results.classList.remove('hidden');
+        const name = localStorage.getItem('analogy-student') || 'estudiante';
        const previousBest = Number(localStorage.getItem('analogy-best-score') || 0);
        const isBest = score >= previousBest;
        localStorage.setItem('analogy-best-score', String(Math.max(score, previousBest)));
        $('result-name').textContent = name; $('final-score').textContent = score;
        $('final-correct').textContent = `${correct}/${totalQuestions}`;
-       $('final-percent').textContent = `${Math.round((correct / totalQuestions) * 100)}%`;
-       $('final-streak').textContent = bestStreak;
-       $('best-result').classList.toggle('hidden', !isBest);
-     }
+        $('final-percent').textContent = `${Math.round((correct / totalQuestions) * 100)}%`;
+        $('final-streak').textContent = bestStreak;
+        $('best-result').classList.toggle('hidden', !isBest);
+        saveResult(name);
+      }
      function toggleSound() {
        if (!audioContext) {
-         const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
          if (!AudioCtor) return;
          audioContext = new AudioCtor(); masterGain = audioContext.createGain(); masterGain.gain.value = 0.025; masterGain.connect(audioContext.destination);
          const osc = audioContext.createOscillator(); osc.type = 'sine'; osc.frequency.value = 196;
