@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f1e5">
+    <meta name="description" content="YACHAY: plataforma interactiva de analogias para aprender razonamiento verbal.">
+    <title>YACHAY | Laboratorio de analogias</title>
+    <link rel="stylesheet" href="styles/yachay.css">
+  </head>
+  <body>
+    <div class="site-shell">
+      <div class="sun" aria-hidden="true"></div>
+      <div class="pattern" aria-hidden="true"></div>
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Inicio de YACHAY">
+          <img src="img/insignia.png" alt="Insignia de la Institucion Educativa Jose Carlos Mariategui">
+          <span><strong>YACHAY</strong><small>aprender conectando</small></span>
+        </a>
+        <button class="sound-button" id="sound-toggle" type="button" aria-pressed="true">
+          <span aria-hidden="true">♫</span><span id="sound-label">Efectos activos</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="screen intro-screen" id="intro-screen" aria-labelledby="intro-title">
+          <div class="intro-copy reveal">
+            <p class="kicker">COMUNICACION · RAZONAMIENTO VERBAL</p>
+            <h1 id="intro-title">Reta tu mente,<br><em>domina tus palabras.</em></h1>
+            <p class="intro-lead">YACHAY es un espacio para entrenar tu mirada, descubrir relaciones entre palabras y aprender a tu propio ritmo.</p>
+            <div class="stat-row" aria-label="Caracteristicas de la actividad">
+              <span><b>30</b> desafios</span><span><b>3</b> niveles</span><span><b>∞</b> sin limite</span>
+            </div>
+          </div>
+          <div class="start-card reveal delayed">
+            <div class="card-index">01 <span>/ listo para empezar</span></div>
+            <span class="card-kicker">TU RECORRIDO COMIENZA AQUI</span>
+            <h2>¿Como te llamas?</h2>
+            <p>Tu nombre aparecera en el resultado final.</p>
+            <label class="sr-only" for="student-name">Nombre del estudiante</label>
+            <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name">
+            <button class="button button-coral" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
+            <p class="privacy-note">Tus datos se quedan en este dispositivo.</p>
+          </div>
+        </section>
+
+        <section class="screen quiz-screen hidden" id="quiz-screen" aria-labelledby="question-title">
+          <div class="quiz-head">
+            <div><p class="kicker">DESAFIO <span id="question-number">01</span></p><span class="difficulty" id="difficulty">BASICO</span></div>
+            <div class="quiz-meta"><div class="timer"><span>TIEMPO</span><strong id="timer">00:00</strong></div><div class="score"><span>PUNTOS</span><strong id="score">000</strong></div></div>
+          </div>
+          <div class="progress" id="progress" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0"><div id="progress-bar"></div></div>
+          <div class="quiz-grid">
+            <aside class="quiz-aside">
+              <p class="aside-label">RELACION</p><h2 id="analogy-type">Sinonimia</h2>
+              <div class="tip"><span>✦</span><p><strong>Observa antes de elegir.</strong><br>Busca que relacion existe entre el primer par.</p></div>
+              <div class="live-stats"><div><strong id="correct-count">0</strong><span>aciertos</span></div><div><strong id="streak-count">0</strong><span>racha</span></div></div>
+            </aside>
+            <article class="question-card">
+              <p class="question-kicker">COMPLETA LA ANALOGIA</p>
+              <h1 id="question-title">Feliz es a alegre como triste es a...</h1>
+              <div class="options" id="options-list"></div>
+              <div class="feedback hidden" id="feedback" role="status" aria-live="polite"><div class="feedback-icon" id="feedback-icon">✓</div><div><strong id="feedback-title">¡Muy bien!</strong><p id="feedback-text"></p></div></div>
+              <button class="button button-dark hidden" id="next-button" type="button">Siguiente desafio <span>→</span></button>
+            </article>
+          </div>
+        </section>
+
+        <section class="screen results-screen hidden" id="results-screen" aria-labelledby="results-title">
+          <div class="result-star" aria-hidden="true">✦</div>
+          <p class="kicker">RECORRIDO COMPLETADO</p>
+          <h1 id="results-title">¡Buen trabajo, <span id="result-name">estudiante</span>!</h1>
+          <p class="result-subtitle">Cada respuesta fue una nueva forma de mirar.</p>
+          <p class="best-result hidden" id="best-result" role="status">Este es tu mejor resultado hasta ahora.</p>
+          <div class="results-panel">
+            <div class="big-score"><span>PUNTAJE FINAL</span><strong id="final-score">0</strong><small>puntos</small></div>
+            <div class="metrics"><div><strong id="final-correct">0/30</strong><span>aciertos</span></div><div><strong id="final-percent">0%</strong><span>precision</span></div><div><strong id="final-time">00:00</strong><span>tiempo</span></div><div><strong id="final-streak">0</strong><span>mejor racha</span></div></div>
+          </div>
+          <div class="result-actions"><button class="button button-coral" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="button button-outline" id="print-button" type="button">Imprimir resultado</button></div>
+        </section>
+      </main>
+      <footer><span>I.E. Jose Carlos Mariategui</span><span>Socchabamba · Ayabaca</span></footer>
+    </div>
+    <audio id="click-audio" preload="auto" src="audio/yachay-click.wav"></audio>
+    <script src="scripts/yachay.js"></script>
+  </body>
+</html>

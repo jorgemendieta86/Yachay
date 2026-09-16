@@ -1,0 +1,139 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+import { analogies } from '../data/analogies';
+---
+
+<MainLayout>
+  <main class="app-shell">
+    <div class="sun-orb" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Ir al inicio">
+        <img src="/img/insignia.png" alt="Insignia de la Institución Educativa José Carlos Mariátegui" />
+        <span><strong>LABORATORIO</strong><small>de analogías</small></span>
+      </a>
+      <button class="sound-button" id="sound-toggle" type="button" aria-pressed="false">
+        <span class="sound-icon" aria-hidden="true">♫</span><span id="sound-label">Ambiente sonoro</span>
+      </button>
+    </header>
+
+    <section class="view intro-view" id="intro-view" aria-labelledby="intro-title">
+      <div class="intro-copy reveal">
+        <p class="eyebrow">COMUNICACIÓN · RAZONAMIENTO VERBAL</p>
+        <h1 id="intro-title">Conecta las ideas.<br /><em>Descubre la relación.</em></h1>
+        <p class="intro-lead">Entrena tu mirada para encontrar lo que une a dos palabras. Sin prisa, con curiosidad y a tu propio ritmo.</p>
+         <div class="stat-row" aria-label="Características de la actividad">
+          <span><b>{analogies.length}</b> desafíos</span><span><b>3</b> niveles</span><span><b>∞</b> sin límite</span>
+        </div>
+      </div>
+      <div class="start-card reveal delayed">
+        <div class="card-marker">01 <span>/ listo para empezar</span></div>
+        <h2>¿Cómo te llamas?</h2>
+        <p>Tu nombre aparecerá en el resultado final.</p>
+        <label for="student-name" class="sr-only">Nombre del estudiante</label>
+        <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name" />
+        <button class="primary-button" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
+        <p class="privacy-note">Tus datos se quedan en este dispositivo.</p>
+      </div>
+    </section>
+
+    <section class="view quiz-view hidden" id="quiz-view" aria-labelledby="question-title">
+      <div class="quiz-topline">
+        <div><span class="eyebrow">DESAFÍO <span id="question-number">01</span></span><span class="difficulty-pill" id="difficulty-pill">BÁSICO</span></div>
+        <div class="score-box"><span>PUNTOS</span><strong id="score">000</strong></div>
+      </div>
+       <div class="progress-track" id="progress-track" role="progressbar" aria-label="Progreso de la actividad" aria-valuemin="0" aria-valuemax={analogies.length} aria-valuenow="0"><div id="progress-bar"></div></div>
+      <div class="quiz-layout">
+        <aside class="quiz-aside">
+          <p class="type-label">RELACIÓN</p><h2 id="analogy-type">Sinonimia</h2>
+          <div class="aside-tip"><span>✦</span><p><strong>Observa antes de elegir.</strong><br />Busca qué relación existe entre el primer par.</p></div>
+          <div class="live-stats"><div><strong id="correct-count">0</strong><span>aciertos</span></div><div><strong id="streak-count">0</strong><span>racha</span></div></div>
+        </aside>
+        <div class="question-card">
+          <p class="question-instruction">Completa la analogía</p>
+          <h1 id="question-title">Feliz es a alegre como triste es a...</h1>
+          <div class="options-grid" id="options-list"></div>
+          <div class="feedback hidden" id="feedback" role="status" aria-live="polite"><div class="feedback-icon" id="feedback-icon">✓</div><div><strong id="feedback-title">¡Muy bien!</strong><p id="feedback-text"></p></div></div>
+          <button class="next-button hidden" id="next-button" type="button">Siguiente desafío <span>→</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="view results-view hidden" id="results-view" aria-labelledby="results-title">
+      <div class="results-badge">✦</div>
+      <p class="eyebrow">RECORRIDO COMPLETADO</p>
+       <h1 id="results-title">¡Buen trabajo, <span id="result-name">estudiante</span>!</h1>
+       <p class="results-subtitle">Cada respuesta fue una nueva forma de mirar.</p>
+       <p class="best-result hidden" id="best-result" role="status">Este es tu mejor resultado hasta ahora.</p>
+      <div class="results-panel">
+        <div class="big-score"><span>PUNTAJE FINAL</span><strong id="final-score">0</strong><small>puntos</small></div>
+        <div class="result-metrics"><div><strong id="final-correct">0</strong><span>aciertos</span></div><div><strong id="final-percent">0%</strong><span>precisión</span></div><div><strong id="final-streak">0</strong><span>mejor racha</span></div></div>
+      </div>
+      <div class="result-actions"><button class="primary-button" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="secondary-button" id="print-button" type="button">Imprimir resultado</button></div>
+    </section>
+    <footer><span>I.E. José Carlos Mariátegui</span><span>Socchabamba · Ayabaca</span></footer>
+  </main>
+
+  <script define:vars={{ questions: analogies }}>
+    const allQuestions = questions;
+    let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
+     let audioContext, masterGain, soundOn = false;
+     const totalQuestions = allQuestions.length;
+    const $ = (id) => document.getElementById(id);
+    const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
+    const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+    function startQuiz() {
+      const name = $('student-name').value.trim() || 'Estudiante';
+      localStorage.setItem('analogy-student', name);
+       activeQuestions = shuffle(allQuestions); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
+       intro.classList.add('hidden'); results.classList.add('hidden'); quiz.classList.remove('hidden'); renderQuestion();
+    }
+    function renderQuestion() {
+      answered = false; const item = activeQuestions[current];
+      $('question-number').textContent = String(current + 1).padStart(2, '0'); $('difficulty-pill').textContent = item.difficulty.toUpperCase();
+      $('analogy-type').textContent = item.type; $('question-title').textContent = item.prompt; $('score').textContent = String(score).padStart(3, '0');
+       updateProgress(current);
+      $('feedback').classList.add('hidden'); $('next-button').classList.add('hidden');
+       $('options-list').innerHTML = item.options.map((option, index) => `<button class="option-button" type="button" data-index="${index}" aria-label="Opción ${String.fromCharCode(65 + index)}: ${option}"><span class="option-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span><span>${option}</span></button>`).join('');
+       document.querySelectorAll('.option-button').forEach((button) => button.addEventListener('click', () => answer(Number(button.dataset.index))));
+     }
+     function updateProgress(completed) {
+       const percentage = (completed / activeQuestions.length) * 100;
+       $('progress-bar').style.width = `${percentage}%`;
+       $('progress-track')?.setAttribute('aria-valuenow', String(completed));
+     }
+    function answer(index) {
+      if (answered) return; answered = true; const item = activeQuestions[current]; const isCorrect = index === item.answer;
+      document.querySelectorAll('.option-button').forEach((button, optionIndex) => { button.disabled = true; if (optionIndex === item.answer) button.classList.add('correct'); if (optionIndex === index && !isCorrect) button.classList.add('wrong'); });
+      if (isCorrect) { correct++; streak++; bestStreak = Math.max(bestStreak, streak); score += 10 + Math.min(streak, 5); $('feedback-title').textContent = streak > 1 ? `¡Excelente! Racha de ${streak}` : '¡Muy bien!'; $('feedback-icon').textContent = '✓'; $('feedback').className = 'feedback correct-feedback'; } else { streak = 0; $('feedback-title').textContent = 'Casi. Sigue explorando'; $('feedback-icon').textContent = '↺'; $('feedback').className = 'feedback wrong-feedback'; }
+      $('feedback-text').textContent = item.explanation; $('correct-count').textContent = correct; $('streak-count').textContent = streak; $('score').textContent = String(score).padStart(3, '0'); $('next-button').classList.remove('hidden');
+       updateProgress(current + 1);
+     }
+    function nextQuestion() { current++; if (current >= activeQuestions.length) showResults(); else renderQuestion(); }
+     function showResults() {
+       quiz.classList.add('hidden'); results.classList.remove('hidden');
+       const name = localStorage.getItem('analogy-student') || 'estudiante';
+       const previousBest = Number(localStorage.getItem('analogy-best-score') || 0);
+       const isBest = score >= previousBest;
+       localStorage.setItem('analogy-best-score', String(Math.max(score, previousBest)));
+       $('result-name').textContent = name; $('final-score').textContent = score;
+       $('final-correct').textContent = `${correct}/${totalQuestions}`;
+       $('final-percent').textContent = `${Math.round((correct / totalQuestions) * 100)}%`;
+       $('final-streak').textContent = bestStreak;
+       $('best-result').classList.toggle('hidden', !isBest);
+     }
+     function toggleSound() {
+       if (!audioContext) {
+         const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+         if (!AudioCtor) return;
+         audioContext = new AudioCtor(); masterGain = audioContext.createGain(); masterGain.gain.value = 0.025; masterGain.connect(audioContext.destination);
+         const osc = audioContext.createOscillator(); osc.type = 'sine'; osc.frequency.value = 196;
+         const lfo = audioContext.createOscillator(); const lfoGain = audioContext.createGain(); lfo.frequency.value = 0.08; lfoGain.gain.value = 5; lfo.connect(lfoGain); lfoGain.connect(osc.frequency); osc.connect(masterGain); osc.start(); lfo.start();
+       }
+       if (audioContext.state === 'suspended') audioContext.resume(); soundOn = !soundOn; masterGain.gain.value = soundOn ? 0.025 : 0; $('sound-toggle').setAttribute('aria-pressed', String(soundOn)); $('sound-label').textContent = soundOn ? 'Sonido activo' : 'Ambiente sonoro';
+     }
+     $('student-name').value = localStorage.getItem('analogy-student') || '';
+    $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print());
+    $('student-name').addEventListener('keydown', (event) => { if (event.key === 'Enter') startQuiz(); });
+  </script>
+</MainLayout>
