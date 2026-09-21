@@ -101,7 +101,7 @@ const storage = {
   }
 };
 const total = 30;
-const questionsPerLevel = 10;
+const errorThreshold = 15;
 const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
 const historyKey = 'yachay-results';
 const recentQuestionsKey = 'yachay-recent-questions';
@@ -124,7 +124,22 @@ function formatResultDate(value) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 'Sin fecha' : date.toLocaleString('es-PE', {dateStyle: 'short', timeStyle: 'short'});
 }
-function chooseQuestions() {
+function normalizeStudentName(name) {
+  return String(name).trim().toLocaleLowerCase('es');
+}
+function getLatestStudentResult(name) {
+  const student = normalizeStudentName(name);
+  return getHistory()
+    .filter(item => normalizeStudentName(item.nombre) === student)
+    .sort((first, second) => new Date(second.fecha) - new Date(first.fecha))[0];
+}
+function getQuestionPlan(name) {
+  const latestResult = getLatestStudentResult(name);
+  return latestResult && Number(latestResult.errores) >= errorThreshold
+    ? {'Básico': 20, 'Intermedio': 10}
+    : {'Básico': 10, 'Intermedio': 10, 'Avanzado': 10};
+}
+function chooseQuestions(name) {
   let recentIds = [];
   try {
     const saved = JSON.parse(storage.get(recentQuestionsKey, '[]'));
@@ -133,10 +148,10 @@ function chooseQuestions() {
     recentIds = [];
   }
   const recent = new Set(recentIds);
-  const selected = ['Básico', 'Intermedio', 'Avanzado'].flatMap(level => {
+  const selected = Object.entries(getQuestionPlan(name)).flatMap(([level, count]) => {
     const levelQuestions = questionBank.filter(item => item.difficulty === level);
     const fresh = shuffle(levelQuestions.filter(item => !recent.has(item.id)));
-    return (fresh.length >= questionsPerLevel ? fresh : shuffle(levelQuestions)).slice(0, questionsPerLevel);
+    return (fresh.length >= count ? fresh : shuffle(levelQuestions)).slice(0, count);
   });
   const selectedIds = selected.map(item => item.id);
   storage.set(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, total)));
@@ -161,6 +176,7 @@ function createResult(name) {
 function storeResult(result) {
   const history = getHistory().filter(item => item.fecha !== result.fecha);
   storage.set(historyKey, JSON.stringify([result, ...history].slice(0, 100)));
+  renderHistory();
 }
 function renderHistory(filter = '') {
   const history = getHistory().sort((first, second) => new Date(second.fecha) - new Date(first.fecha));
@@ -183,7 +199,7 @@ function updateProgress(completed) { $('progress-bar').style.width = `${(complet
 function startQuiz() {
   const name = $('student-name').value.trim() || 'Estudiante';
   storage.set('yachay-student', name);
-  active = chooseQuestions(); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0; resultSaved = false; resultSaving = false; currentResult = null;
+  active = chooseQuestions(name); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0; resultSaved = false; resultSaving = false; currentResult = null;
   $('save-button').disabled = false; $('save-button').innerHTML = 'Reintentar guardado <span>↓</span>'; $('save-status').textContent = '';
   $('intro-screen').classList.add('hidden'); $('history-panel').classList.add('hidden'); $('results-screen').classList.add('hidden'); $('quiz-screen').classList.remove('hidden'); renderQuestion(); startTimer();
   playTone(392, .12, 'sine', .12);

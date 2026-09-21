@@ -37,6 +37,30 @@ import { analogies } from '../data/analogies';
       </div>
     </section>
 
+    <section class="view history-view" id="history-view" aria-labelledby="history-title">
+      <div class="history-heading">
+        <div>
+          <p class="eyebrow">SEGUIMIENTO</p>
+          <h2 id="history-title">Historial de resultados</h2>
+        </div>
+        <label for="history-student-filter">Filtrar por estudiante
+          <select id="history-student-filter">
+            <option value="">Todos los estudiantes</option>
+          </select>
+        </label>
+      </div>
+      <p class="history-status" id="history-status" role="status" aria-live="polite"></p>
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <caption class="sr-only">Resultados guardados de los estudiantes</caption>
+          <thead>
+            <tr><th scope="col">Estudiante</th><th scope="col">Aciertos</th><th scope="col">Errores</th><th scope="col">Nivel</th><th scope="col">Fecha</th></tr>
+          </thead>
+          <tbody id="history-list"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="view quiz-view hidden" id="quiz-view" aria-labelledby="question-title">
       <div class="quiz-topline">
         <div><span class="eyebrow">DESAFÍO <span id="question-number">01</span></span><span class="difficulty-pill" id="difficulty-pill">BÁSICO</span></div>
@@ -76,33 +100,80 @@ import { analogies } from '../data/analogies';
   </main>
 
   <script define:vars={{ questions: analogies }}>
-     const allQuestions = questions;
-     const totalQuestions = 30;
-     const questionsPerLevel = 10;
-     const recentQuestionsKey = 'analogy-recent-questions';
-     const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
-     let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
-     let audioContext, masterGain, soundOn = false;
-     const $ = (id) => document.getElementById(id);
-     const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
-     const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-     function chooseQuestions() {
+      const allQuestions = questions;
+      const totalQuestions = 30;
+      const errorThreshold = 15;
+      const historyKey = 'yachay-results';
+      const recentQuestionsKey = 'yachay-recent-questions';
+      const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
+      let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
+      let audioContext, masterGain, soundOn = false;
+      const $ = (id) => document.getElementById(id);
+      const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
+      const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+      function getHistory() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(historyKey) || '[]');
+          return Array.isArray(saved) ? saved : [];
+        } catch {
+          return [];
+        }
+      }
+      function formatResultDate(value) {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? 'Sin fecha' : date.toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' });
+      }
+      function normalizeStudentName(name) {
+        return String(name).trim().toLocaleLowerCase('es');
+      }
+      function getLatestStudentResult(name) {
+        const student = normalizeStudentName(name);
+        return getHistory()
+          .filter((item) => normalizeStudentName(item.nombre) === student)
+          .sort((first, second) => new Date(second.fecha) - new Date(first.fecha))[0];
+      }
+      function getQuestionPlan(name) {
+        const latestResult = getLatestStudentResult(name);
+        return latestResult && Number(latestResult.errores) >= errorThreshold
+          ? { 'Básico': 20, 'Intermedio': 10 }
+          : { 'Básico': 10, 'Intermedio': 10, 'Avanzado': 10 };
+      }
+      function renderHistory(filter = '') {
+        const history = getHistory().sort((first, second) => new Date(second.fecha) - new Date(first.fecha));
+        const filterElement = $('history-student-filter');
+        const list = $('history-list');
+        const status = $('history-status');
+        const students = [...new Set(history.map((item) => item.nombre).filter(Boolean))].sort((first, second) => first.localeCompare(second, 'es', { sensitivity: 'base' }));
+        const selectedStudent = students.includes(filter) ? filter : '';
+        const filtered = selectedStudent ? history.filter((item) => item.nombre === selectedStudent) : history;
+        filterElement.innerHTML = '<option value="">Todos los estudiantes</option>' + students.map((student) => `<option value="${escapeHtml(student)}">${escapeHtml(student)}</option>`).join('');
+        filterElement.value = selectedStudent;
+        list.innerHTML = filtered.map((item) => `<tr><th scope="row">${escapeHtml(item.nombre || 'Estudiante')}</th><td>${item.aciertos}/${totalQuestions}</td><td>${item.errores}</td><td><span class="level-badge">${escapeHtml(item.nivel || 'Mixto')}</span></td><td>${escapeHtml(formatResultDate(item.fecha))}</td></tr>`).join('');
+        status.textContent = filtered.length ? `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} guardado${filtered.length === 1 ? '' : 's'}.` : 'No hay resultados guardados para este filtro.';
+      }
+      function storeResult(result) {
+        const history = getHistory().filter((item) => item.fecha !== result.fecha);
+        localStorage.setItem(historyKey, JSON.stringify([result, ...history].slice(0, 100)));
+        renderHistory();
+      }
+      function chooseQuestions(name) {
        let recentIds = [];
        try { recentIds = JSON.parse(localStorage.getItem(recentQuestionsKey) || '[]'); } catch { recentIds = []; }
        const recent = new Set(Array.isArray(recentIds) ? recentIds : []);
-       const selected = ['Básico', 'Intermedio', 'Avanzado'].flatMap((level) => {
+       const selected = Object.entries(getQuestionPlan(name)).flatMap(([level, count]) => {
          const levelQuestions = allQuestions.filter((item) => item.difficulty === level);
          const fresh = shuffle(levelQuestions.filter((item) => !recent.has(item.id)));
-         return (fresh.length >= questionsPerLevel ? fresh : shuffle(levelQuestions)).slice(0, questionsPerLevel);
+          return (fresh.length >= count ? fresh : shuffle(levelQuestions)).slice(0, count);
        });
        const selectedIds = selected.map((item) => item.id);
        localStorage.setItem(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, totalQuestions)));
        return shuffle(selected);
      }
-     function startQuiz() {
-       const name = $('student-name').value.trim() || 'Estudiante';
-       localStorage.setItem('analogy-student', name);
-        activeQuestions = chooseQuestions(); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
+      function startQuiz() {
+        const name = $('student-name').value.trim() || 'Estudiante';
+        localStorage.setItem('yachay-student', name);
+        activeQuestions = chooseQuestions(name); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
        intro.classList.add('hidden'); results.classList.add('hidden'); quiz.classList.remove('hidden'); renderQuestion();
     }
     function renderQuestion() {
@@ -134,9 +205,13 @@ import { analogies } from '../data/analogies';
           nombre: name,
           aciertos: correct,
           errores: totalQuestions - correct,
+          nivel: [...new Set(activeQuestions.map((item) => item.difficulty))].length === 1 ? activeQuestions[0].difficulty : 'Mixto',
           porcentaje: Math.round((correct / totalQuestions) * 100),
-          puntaje: score
+          puntaje: score,
+          tiempo: 0
         };
+
+        storeResult(result);
 
         saveStatus.textContent = 'Guardando resultado...';
         saveStatus.className = 'save-status saving';
@@ -159,10 +234,10 @@ import { analogies } from '../data/analogies';
 
       function showResults() {
         quiz.classList.add('hidden'); results.classList.remove('hidden');
-        const name = localStorage.getItem('analogy-student') || 'estudiante';
-       const previousBest = Number(localStorage.getItem('analogy-best-score') || 0);
+       const name = localStorage.getItem('yachay-student') || 'estudiante';
+       const previousBest = Number(localStorage.getItem('yachay-best-score') || 0);
        const isBest = score >= previousBest;
-       localStorage.setItem('analogy-best-score', String(Math.max(score, previousBest)));
+       localStorage.setItem('yachay-best-score', String(Math.max(score, previousBest)));
        $('result-name').textContent = name; $('final-score').textContent = score;
        $('final-correct').textContent = `${correct}/${totalQuestions}`;
         $('final-percent').textContent = `${Math.round((correct / totalQuestions) * 100)}%`;
@@ -180,8 +255,10 @@ import { analogies } from '../data/analogies';
        }
        if (audioContext.state === 'suspended') audioContext.resume(); soundOn = !soundOn; masterGain.gain.value = soundOn ? 0.025 : 0; $('sound-toggle').setAttribute('aria-pressed', String(soundOn)); $('sound-label').textContent = soundOn ? 'Sonido activo' : 'Ambiente sonoro';
      }
-     $('student-name').value = localStorage.getItem('analogy-student') || '';
-    $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print());
+     $('student-name').value = localStorage.getItem('yachay-student') || '';
+     $('history-student-filter').addEventListener('change', (event) => renderHistory(event.target.value));
+     renderHistory();
+     $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print());
     $('student-name').addEventListener('keydown', (event) => { if (event.key === 'Enter') startQuiz(); });
   </script>
 </MainLayout>

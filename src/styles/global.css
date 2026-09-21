@@ -59,6 +59,21 @@ footer { color: var(--muted); display: flex; font-family: 'DM Mono', monospace; 
 .save-status.saving { color: var(--muted); }
 .save-status.saved { color: var(--teal); }
 .save-status.failed { color: var(--coral); }
+.history-view { background: rgba(255,254,250,.72); border: 1px solid var(--line); margin: 46px auto 0; padding: 24px; text-align: left; }
+.history-heading { align-items: flex-end; display: flex; gap: 20px; justify-content: space-between; }
+.history-heading h2 { font-size: 28px; letter-spacing: -.05em; margin: 8px 0 0; }
+.history-heading label { color: var(--muted); display: flex; flex-direction: column; font-size: 12px; font-weight: 700; gap: 7px; }
+.history-heading select { background: var(--white); border: 1px solid #b5c8c6; border-radius: 3px; color: var(--ink); font-size: 14px; min-width: 210px; padding: 9px; }
+.history-status { color: var(--muted); font-size: 12px; min-height: 18px; margin: 18px 0 10px; }
+.history-table-wrap { overflow-x: auto; }
+.history-table { border-collapse: collapse; min-width: 590px; width: 100%; }
+.history-table th, .history-table td { border-bottom: 1px solid var(--line); padding: 13px 10px; text-align: left; }
+.history-table thead th { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.history-table tbody th { font-size: 14px; font-weight: 700; }
+.history-table tbody td { color: var(--muted); font-size: 13px; }
+.history-table tbody tr:last-child th, .history-table tbody tr:last-child td { border-bottom: 0; }
+.level-badge { background: var(--mint); border-radius: 99px; color: var(--teal); display: inline-block; font-size: 11px; font-weight: 700; padding: 5px 9px; }
+.history-table tbody tr:hover { background: rgba(217,242,228,.3); }
 .reveal { animation: rise .7s ease both; }.delayed { animation-delay: .15s; } @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-@media (max-width: 760px) { .app-shell { padding: 20px 18px; }.topbar { margin-bottom: 46px; }.sound-button { padding: 8px 10px; }.sound-button #sound-label { display: none; }.intro-view, .quiz-layout { grid-template-columns: 1fr; }.intro-copy h1 { font-size: clamp(47px, 14vw, 70px); }.stat-row { gap: 17px; }.start-card { padding: 26px; }.card-marker { margin-bottom: 34px; }.quiz-aside h2 { margin-bottom: 18px; }.aside-tip { display: none; }.live-stats { margin-top: 15px; }.quiz-layout { gap: 24px; }.question-card { padding: 25px 18px; }.options-grid { grid-template-columns: 1fr; }.results-panel { align-items: flex-start; flex-direction: column; gap: 25px; text-align: left; }.result-metrics { border-left: 0; border-top: 1px solid var(--line); justify-content: space-between; padding: 20px 0 0; width: 100%; }.result-actions { flex-direction: column; }.result-actions .primary-button, .secondary-button { width: 100%; } footer { gap: 10px; margin-top: 55px; } }
+@media (max-width: 760px) { .app-shell { padding: 20px 18px; }.topbar { margin-bottom: 46px; }.sound-button { padding: 8px 10px; }.sound-button #sound-label { display: none; }.intro-view, .quiz-layout { grid-template-columns: 1fr; }.intro-copy h1 { font-size: clamp(47px, 14vw, 70px); }.stat-row { gap: 17px; }.start-card { padding: 26px; }.card-marker { margin-bottom: 34px; }.quiz-aside h2 { margin-bottom: 18px; }.aside-tip { display: none; }.live-stats { margin-top: 15px; }.quiz-layout { gap: 24px; }.question-card { padding: 25px 18px; }.options-grid { grid-template-columns: 1fr; }.results-panel { align-items: flex-start; flex-direction: column; gap: 25px; text-align: left; }.result-metrics { border-left: 0; border-top: 1px solid var(--line); justify-content: space-between; padding: 20px 0 0; width: 100%; }.result-actions { flex-direction: column; }.result-actions .primary-button, .secondary-button { width: 100%; }.history-view { padding: 18px 14px; }.history-heading { align-items: stretch; flex-direction: column; }.history-heading h2 { font-size: 25px; }.history-heading select { width: 100%; } footer { gap: 10px; margin-top: 55px; } }
 @media print { .app-shell { padding: 0; }.topbar, footer, .result-actions, .grain, .sun-orb { display: none; }.results-view { margin-top: 30px; } }
