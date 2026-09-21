@@ -23,7 +23,7 @@ import { analogies } from '../data/analogies';
         <h1 id="intro-title">Conecta las ideas.<br /><em>Descubre la relación.</em></h1>
         <p class="intro-lead">Entrena tu mirada para encontrar lo que une a dos palabras. Sin prisa, con curiosidad y a tu propio ritmo.</p>
          <div class="stat-row" aria-label="Características de la actividad">
-          <span><b>{analogies.length}</b> desafíos</span><span><b>3</b> niveles</span><span><b>∞</b> sin límite</span>
+          <span><b>30</b> desafíos por reto</span><span><b>{analogies.length}</b> ejercicios disponibles</span><span><b>3</b> niveles</span>
         </div>
       </div>
       <div class="start-card reveal delayed">
@@ -77,17 +77,32 @@ import { analogies } from '../data/analogies';
 
   <script define:vars={{ questions: analogies }}>
      const allQuestions = questions;
+     const totalQuestions = 30;
+     const questionsPerLevel = 10;
+     const recentQuestionsKey = 'analogy-recent-questions';
      const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
-    let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
+     let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
      let audioContext, masterGain, soundOn = false;
-     const totalQuestions = allQuestions.length;
-    const $ = (id) => document.getElementById(id);
-    const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
-    const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-    function startQuiz() {
-      const name = $('student-name').value.trim() || 'Estudiante';
-      localStorage.setItem('analogy-student', name);
-       activeQuestions = shuffle(allQuestions); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
+     const $ = (id) => document.getElementById(id);
+     const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
+     const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+     function chooseQuestions() {
+       let recentIds = [];
+       try { recentIds = JSON.parse(localStorage.getItem(recentQuestionsKey) || '[]'); } catch { recentIds = []; }
+       const recent = new Set(Array.isArray(recentIds) ? recentIds : []);
+       const selected = ['Básico', 'Intermedio', 'Avanzado'].flatMap((level) => {
+         const levelQuestions = allQuestions.filter((item) => item.difficulty === level);
+         const fresh = shuffle(levelQuestions.filter((item) => !recent.has(item.id)));
+         return (fresh.length >= questionsPerLevel ? fresh : shuffle(levelQuestions)).slice(0, questionsPerLevel);
+       });
+       const selectedIds = selected.map((item) => item.id);
+       localStorage.setItem(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, totalQuestions)));
+       return shuffle(selected);
+     }
+     function startQuiz() {
+       const name = $('student-name').value.trim() || 'Estudiante';
+       localStorage.setItem('analogy-student', name);
+        activeQuestions = chooseQuestions(); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
        intro.classList.add('hidden'); results.classList.add('hidden'); quiz.classList.remove('hidden'); renderQuestion();
     }
     function renderQuestion() {

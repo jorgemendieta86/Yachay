@@ -29,7 +29,7 @@
             <h1 id="intro-title">Reta tu mente,<br><em>domina tus palabras.</em></h1>
             <p class="intro-lead">YACHAY es un espacio para entrenar tu mirada, descubrir relaciones entre palabras y aprender a tu propio ritmo.</p>
             <div class="stat-row" aria-label="Caracteristicas de la actividad">
-              <span><b>30</b> desafios</span><span><b>3</b> niveles</span><span><b>∞</b> sin limite</span>
+              <span><b>30</b> desafios por reto</span><span><b>90</b> ejercicios disponibles</span><span><b>3</b> niveles</span>
             </div>
           </div>
           <div class="start-card reveal delayed">
@@ -40,7 +40,31 @@
             <label class="sr-only" for="student-name">Nombre del estudiante</label>
             <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name">
             <button class="button button-coral" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
-            <p class="privacy-note">Al finalizar podrás guardar tu resultado.</p>
+            <p class="privacy-note">Al finalizar tu resultado se guardará automáticamente.</p>
+          </div>
+        </section>
+
+        <section class="screen history-panel" id="history-panel" aria-labelledby="history-title">
+          <div class="history-heading">
+            <div>
+              <p class="kicker">SEGUIMIENTO</p>
+              <h2 id="history-title">Historial de resultados</h2>
+            </div>
+            <label for="history-student-filter">Filtrar por estudiante
+              <select id="history-student-filter">
+                <option value="">Todos los estudiantes</option>
+              </select>
+            </label>
+          </div>
+          <p class="history-status" id="history-status" role="status" aria-live="polite"></p>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <caption class="sr-only">Resultados guardados de los estudiantes</caption>
+              <thead>
+                <tr><th scope="col">Estudiante</th><th scope="col">Aciertos</th><th scope="col">Errores</th><th scope="col">Nivel</th><th scope="col">Fecha</th></tr>
+              </thead>
+              <tbody id="history-list"></tbody>
+            </table>
           </div>
         </section>
 
@@ -76,7 +100,7 @@
             <div class="big-score"><span>PUNTAJE FINAL</span><strong id="final-score">0</strong><small>puntos</small></div>
             <div class="metrics"><div><strong id="final-correct">0/30</strong><span>aciertos</span></div><div><strong id="final-errors">0</strong><span>errores</span></div><div><strong id="final-percent">0%</strong><span>precision</span></div><div><strong id="final-time">00:00</strong><span>tiempo</span></div><div><strong id="final-streak">0</strong><span>mejor racha</span></div></div>
           </div>
-          <div class="result-actions"><button class="button button-coral" id="save-button" type="button">Guardar resultados <span>↓</span></button><button class="button button-outline" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="button button-outline" id="print-button" type="button">Imprimir resultado</button></div>
+          <div class="result-actions"><button class="button button-coral" id="save-button" type="button">Reintentar guardado <span>↓</span></button><button class="button button-outline" id="restart-button" type="button">Volver a intentarlo <span>↻</span></button><button class="button button-outline" id="print-button" type="button">Imprimir resultado</button></div>
           <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
         </section>
       </main>
