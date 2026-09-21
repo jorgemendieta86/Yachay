@@ -139,6 +139,17 @@ import { analogies } from '../data/analogies';
           ? { 'Básico': 20, 'Intermedio': 10 }
           : { 'Básico': 10, 'Intermedio': 10, 'Avanzado': 10 };
       }
+      function arrangeOptions(items) {
+        const answerPositions = shuffle(items.map((item, index) => index % item.options.length));
+        return items.map((item, index) => {
+          const correctOption = item.options[item.answer];
+          const distractors = shuffle(item.options.filter((_, optionIndex) => optionIndex !== item.answer));
+          const options = [...distractors];
+          const answer = answerPositions[index];
+          options.splice(answer, 0, correctOption);
+          return { ...item, options, answer };
+        });
+      }
       function renderHistory(filter = '') {
         const history = getHistory().sort((first, second) => new Date(second.fecha) - new Date(first.fecha));
         const filterElement = $('history-student-filter');
@@ -168,7 +179,7 @@ import { analogies } from '../data/analogies';
        });
        const selectedIds = selected.map((item) => item.id);
        localStorage.setItem(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, totalQuestions)));
-       return shuffle(selected);
+       return arrangeOptions(shuffle(selected));
      }
       function startQuiz() {
         const name = $('student-name').value.trim() || 'Estudiante';

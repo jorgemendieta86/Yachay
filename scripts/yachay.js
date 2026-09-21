@@ -139,6 +139,17 @@ function getQuestionPlan(name) {
     ? {'Básico': 20, 'Intermedio': 10}
     : {'Básico': 10, 'Intermedio': 10, 'Avanzado': 10};
 }
+function arrangeOptions(items) {
+  const answerPositions = shuffle(items.map((item, index) => index % item.options.length));
+  return items.map((item, index) => {
+    const correctOption = item.options[item.answer];
+    const distractors = shuffle(item.options.filter((_, optionIndex) => optionIndex !== item.answer));
+    const options = [...distractors];
+    const answer = answerPositions[index];
+    options.splice(answer, 0, correctOption);
+    return {...item, options, answer};
+  });
+}
 function chooseQuestions(name) {
   let recentIds = [];
   try {
@@ -155,7 +166,7 @@ function chooseQuestions(name) {
   });
   const selectedIds = selected.map(item => item.id);
   storage.set(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, total)));
-  return shuffle(selected);
+  return arrangeOptions(shuffle(selected));
 }
 function getResultLevel() {
   const levels = [...new Set(active.map(item => item.difficulty))];
