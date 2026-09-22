@@ -201,7 +201,7 @@ function renderHistory(filter = '') {
   const selectedStudent = students.includes(filter) ? filter : '';
   filterElement.value = selectedStudent;
   const filtered = selectedStudent ? history.filter(item => item.nombre === selectedStudent) : history;
-  list.innerHTML = filtered.map(item => `<tr><th scope="row">${escapeHtml(item.nombre || 'Estudiante')}</th><td>${item.aciertos}/${total}</td><td>${item.errores}</td><td><span class="level-badge">${escapeHtml(item.nivel || 'Mixto')}</span></td><td>${escapeHtml(formatResultDate(item.fecha))}</td></tr>`).join('');
+  list.innerHTML = filtered.map(item => `<tr><th scope="row">${escapeHtml(item.nombre || 'Estudiante')}</th><td>${item.aciertos}/${total}</td><td>${item.errores}</td><td>${escapeHtml(formatTime(Number(item.tiempo) || 0))}</td><td><span class="level-badge">${escapeHtml(item.nivel || 'Mixto')}</span></td><td>${escapeHtml(formatResultDate(item.fecha))}</td></tr>`).join('');
   status.textContent = filtered.length ? `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} guardado${filtered.length === 1 ? '' : 's'}.` : 'No hay resultados guardados para este filtro.';
 }
 function startTimer() { clearInterval(timerId); elapsed = 0; $('timer').textContent = '00:00'; timerId = setInterval(() => { elapsed++; $('timer').textContent = formatTime(elapsed); }, 1000); }
