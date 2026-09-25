@@ -1,6 +1,7 @@
 ---
 import MainLayout from '../layouts/MainLayout.astro';
 import { analogies } from '../data/analogies';
+import { adjectives } from '../data/adjectives';
 ---
 
 <MainLayout>
@@ -8,9 +9,9 @@ import { analogies } from '../data/analogies';
     <div class="sun-orb" aria-hidden="true"></div>
     <div class="grain" aria-hidden="true"></div>
     <header class="topbar">
-      <a class="brand" href="/" aria-label="Ir al inicio">
-        <img src="/img/insignia.png" alt="Insignia de la Institución Educativa José Carlos Mariátegui" />
-        <span><strong>LABORATORIO</strong><small>de analogías</small></span>
+       <a class="brand" href="./" aria-label="Ir al inicio">
+         <img src="./img/insignia.png" alt="Insignia de la Institución Educativa José Carlos Mariátegui" />
+        <span><strong>YACHAY</strong><small>laboratorio de palabras</small></span>
       </a>
       <button class="sound-button" id="sound-toggle" type="button" aria-pressed="false">
         <span class="sound-icon" aria-hidden="true">♫</span><span id="sound-label">Ambiente sonoro</span>
@@ -22,18 +23,23 @@ import { analogies } from '../data/analogies';
         <p class="eyebrow">COMUNICACIÓN · RAZONAMIENTO VERBAL</p>
         <h1 id="intro-title">Conecta las ideas.<br /><em>Descubre la relación.</em></h1>
         <p class="intro-lead">Entrena tu mirada para encontrar lo que une a dos palabras. Sin prisa, con curiosidad y a tu propio ritmo.</p>
-         <div class="stat-row" aria-label="Características de la actividad">
-          <span><b>30</b> desafíos por reto</span><span><b>{analogies.length}</b> ejercicios disponibles</span><span><b>3</b> niveles</span>
+          <div class="stat-row" aria-label="Características de la actividad">
+           <span><b>2</b> desafíos disponibles</span><span><b>3</b> niveles</span>
         </div>
       </div>
       <div class="start-card reveal delayed">
         <div class="card-marker">01 <span>/ listo para empezar</span></div>
-        <h2>¿Cómo te llamas?</h2>
-        <p>Tu nombre aparecerá en el resultado final.</p>
-        <label for="student-name" class="sr-only">Nombre del estudiante</label>
-        <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name" />
-        <button class="primary-button" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
-        <p class="privacy-note">Tu resultado se guardara automaticamente en Google Sheets.</p>
+         <h2>¿Cómo te llamas?</h2>
+         <p>Elige un recorrido y tu nombre aparecerá en el resultado final.</p>
+         <label for="student-name" class="sr-only">Nombre del estudiante</label>
+         <input id="student-name" type="text" maxlength="30" placeholder="Escribe tu nombre" autocomplete="name" />
+         <fieldset class="challenge-picker">
+           <legend>Selecciona el desafío</legend>
+           <label><input type="radio" name="challenge" value="analogies" /> <span>Analogías</span></label>
+           <label><input type="radio" name="challenge" value="adjectives" /> <span>Adjetivos</span></label>
+         </fieldset>
+         <p class="challenge-selection-status" id="challenge-selection-status" role="status" aria-live="polite">Selecciona un desafío para continuar.</p>
+         <button class="primary-button hidden" id="start-button" type="button">Comenzar recorrido <span>→</span></button>
       </div>
     </section>
 
@@ -54,7 +60,7 @@ import { analogies } from '../data/analogies';
         <table class="history-table">
           <caption class="sr-only">Resultados guardados de los estudiantes</caption>
           <thead>
-            <tr><th scope="col">Estudiante</th><th scope="col">Aciertos</th><th scope="col">Errores</th><th scope="col">Nivel</th><th scope="col">Fecha</th></tr>
+             <tr><th scope="col">Estudiante</th><th scope="col">Desafío</th><th scope="col">Aciertos</th><th scope="col">Errores</th><th scope="col">Nivel</th><th scope="col">Fecha</th></tr>
           </thead>
           <tbody id="history-list"></tbody>
         </table>
@@ -63,14 +69,14 @@ import { analogies } from '../data/analogies';
 
     <section class="view quiz-view hidden" id="quiz-view" aria-labelledby="question-title">
       <div class="quiz-topline">
-        <div><span class="eyebrow">DESAFÍO <span id="question-number">01</span></span><span class="difficulty-pill" id="difficulty-pill">BÁSICO</span></div>
+         <div><span class="eyebrow"><span id="challenge-label">DESAFÍO</span> <span id="question-number">01</span></span><span class="difficulty-pill" id="difficulty-pill">BÁSICO</span></div>
         <div class="score-box"><span>PUNTOS</span><strong id="score">000</strong></div>
       </div>
        <div class="progress-track" id="progress-track" role="progressbar" aria-label="Progreso de la actividad" aria-valuemin="0" aria-valuemax={analogies.length} aria-valuenow="0"><div id="progress-bar"></div></div>
       <div class="quiz-layout">
         <aside class="quiz-aside">
-          <p class="type-label">RELACIÓN</p><h2 id="analogy-type">Sinonimia</h2>
-          <div class="aside-tip"><span>✦</span><p><strong>Observa antes de elegir.</strong><br />Busca qué relación existe entre el primer par.</p></div>
+           <p class="type-label" id="type-label">RELACIÓN</p><h2 id="analogy-type">Sinonimia</h2>
+           <div class="aside-tip"><span>✦</span><p id="tip-text"><strong>Observa antes de elegir.</strong><br />Busca qué relación existe entre el primer par.</p></div>
           <div class="live-stats"><div><strong id="correct-count">0</strong><span>aciertos</span></div><div><strong id="streak-count">0</strong><span>racha</span></div></div>
         </aside>
         <div class="question-card">
@@ -85,7 +91,7 @@ import { analogies } from '../data/analogies';
 
     <section class="view results-view hidden" id="results-view" aria-labelledby="results-title">
       <div class="results-badge">✦</div>
-      <p class="eyebrow">RECORRIDO COMPLETADO</p>
+        <p class="eyebrow">RECORRIDO COMPLETADO · <span id="result-challenge">ANALOGÍAS</span></p>
        <h1 id="results-title">¡Buen trabajo, <span id="result-name">estudiante</span>!</h1>
        <p class="results-subtitle">Cada respuesta fue una nueva forma de mirar.</p>
        <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
@@ -99,17 +105,21 @@ import { analogies } from '../data/analogies';
     <footer><span>I.E. José Carlos Mariátegui</span><span>Socchabamba · Ayabaca</span></footer>
   </main>
 
-  <script define:vars={{ questions: analogies }}>
-      const allQuestions = questions;
-      const totalQuestions = 30;
+  <script is:inline define:vars={{ analogies, adjectives }}>
+      const challengeBanks = { analogies, adjectives };
+      let selectedChallenge = localStorage.getItem('yachay-challenge') || 'analogies';
+      const getChallenge = () => document.querySelector('input[name="challenge"]:checked')?.value || '';
+      const challengeName = (type) => type === 'adjectives' ? 'Adjetivos' : 'Analogías';
+      let allQuestions = challengeBanks[selectedChallenge] || analogies;
+      let totalQuestions = allQuestions.length;
       const errorThreshold = 15;
       const historyKey = 'yachay-results';
-      const recentQuestionsKey = 'yachay-recent-questions';
+      const recentQuestionsKey = () => `yachay-recent-questions-${selectedChallenge}`;
       const resultsEndpoint = 'https://script.google.com/macros/s/AKfycbx2rb6uOeRqPvdicauu_q3O114DjExI0Tv3SMqRzm2h5-5y9c6MGdF2djLjfEp6expPIA/exec';
       let activeQuestions = [], current = 0, score = 0, correct = 0, streak = 0, bestStreak = 0, answered = false;
       let audioContext, masterGain, soundOn = false;
       const $ = (id) => document.getElementById(id);
-      const intro = $('intro-view'), quiz = $('quiz-view'), results = $('results-view');
+      const intro = $('intro-view'), history = $('history-view'), quiz = $('quiz-view'), results = $('results-view');
       const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
       const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
       function getHistory() {
@@ -127,15 +137,16 @@ import { analogies } from '../data/analogies';
       function normalizeStudentName(name) {
         return String(name).trim().toLocaleLowerCase('es');
       }
-      function getLatestStudentResult(name) {
-        const student = normalizeStudentName(name);
-        return getHistory()
-          .filter((item) => normalizeStudentName(item.nombre) === student)
+       function getLatestStudentResult(name) {
+         const student = normalizeStudentName(name);
+         return getHistory()
+           .filter((item) => normalizeStudentName(item.nombre) === student && (item.desafio || 'analogies') === selectedChallenge)
           .sort((first, second) => new Date(second.fecha) - new Date(first.fecha))[0];
       }
-      function getQuestionPlan(name) {
-        const latestResult = getLatestStudentResult(name);
-        return latestResult && Number(latestResult.errores) >= errorThreshold
+       function getQuestionPlan(name) {
+         const latestResult = getLatestStudentResult(name);
+         if (selectedChallenge === 'adjectives') return { 'Básico': 20, 'Intermedio': 15, 'Avanzado': 15 };
+         return latestResult && Number(latestResult.errores) >= errorThreshold
           ? { 'Básico': 20, 'Intermedio': 10 }
           : { 'Básico': 10, 'Intermedio': 10, 'Avanzado': 10 };
       }
@@ -160,7 +171,7 @@ import { analogies } from '../data/analogies';
         const filtered = selectedStudent ? history.filter((item) => item.nombre === selectedStudent) : history;
         filterElement.innerHTML = '<option value="">Todos los estudiantes</option>' + students.map((student) => `<option value="${escapeHtml(student)}">${escapeHtml(student)}</option>`).join('');
         filterElement.value = selectedStudent;
-        list.innerHTML = filtered.map((item) => `<tr><th scope="row">${escapeHtml(item.nombre || 'Estudiante')}</th><td>${item.aciertos}/${totalQuestions}</td><td>${item.errores}</td><td><span class="level-badge">${escapeHtml(item.nivel || 'Mixto')}</span></td><td>${escapeHtml(formatResultDate(item.fecha))}</td></tr>`).join('');
+         list.innerHTML = filtered.map((item) => { const challenge = item.desafio || 'analogies'; const itemTotal = challenge === 'adjectives' ? 50 : 30; return `<tr><th scope="row">${escapeHtml(item.nombre || 'Estudiante')}</th><td>${escapeHtml(challengeName(challenge))}</td><td>${item.aciertos}/${itemTotal}</td><td>${item.errores}</td><td><span class="level-badge">${escapeHtml(item.nivel || 'Mixto')}</span></td><td>${escapeHtml(formatResultDate(item.fecha))}</td></tr>`; }).join('');
         status.textContent = filtered.length ? `${filtered.length} resultado${filtered.length === 1 ? '' : 's'} guardado${filtered.length === 1 ? '' : 's'}.` : 'No hay resultados guardados para este filtro.';
       }
       function storeResult(result) {
@@ -170,7 +181,7 @@ import { analogies } from '../data/analogies';
       }
       function chooseQuestions(name) {
        let recentIds = [];
-       try { recentIds = JSON.parse(localStorage.getItem(recentQuestionsKey) || '[]'); } catch { recentIds = []; }
+         try { recentIds = JSON.parse(localStorage.getItem(recentQuestionsKey()) || '[]'); } catch { recentIds = []; }
        const recent = new Set(Array.isArray(recentIds) ? recentIds : []);
        const selected = Object.entries(getQuestionPlan(name)).flatMap(([level, count]) => {
          const levelQuestions = allQuestions.filter((item) => item.difficulty === level);
@@ -178,19 +189,31 @@ import { analogies } from '../data/analogies';
           return (fresh.length >= count ? fresh : shuffle(levelQuestions)).slice(0, count);
        });
        const selectedIds = selected.map((item) => item.id);
-       localStorage.setItem(recentQuestionsKey, JSON.stringify([...selectedIds, ...recentIds].slice(0, totalQuestions)));
-       return arrangeOptions(shuffle(selected));
+        localStorage.setItem(recentQuestionsKey(), JSON.stringify([...selectedIds, ...recentIds].slice(0, totalQuestions)));
+        return arrangeOptions(selected);
      }
-      function startQuiz() {
-        const name = $('student-name').value.trim() || 'Estudiante';
-        localStorage.setItem('yachay-student', name);
+       function startQuiz() {
+         const name = $('student-name').value.trim() || 'Estudiante';
+         selectedChallenge = getChallenge();
+         if (!selectedChallenge) {
+           $('challenge-selection-status').textContent = 'Selecciona Analogías o Adjetivos antes de comenzar.';
+           return;
+         }
+         localStorage.setItem('yachay-challenge', selectedChallenge);
+         allQuestions = challengeBanks[selectedChallenge] || analogies;
+         totalQuestions = allQuestions.length;
+         $('progress-track').setAttribute('aria-valuemax', String(totalQuestions));
+         localStorage.setItem('yachay-student', name);
         activeQuestions = chooseQuestions(name); current = 0; score = 0; correct = 0; streak = 0; bestStreak = 0;
-       intro.classList.add('hidden'); results.classList.add('hidden'); quiz.classList.remove('hidden'); renderQuestion();
+        intro.classList.add('hidden'); history.classList.add('hidden'); results.classList.add('hidden'); quiz.classList.remove('hidden'); renderQuestion();
     }
     function renderQuestion() {
       answered = false; const item = activeQuestions[current];
       $('question-number').textContent = String(current + 1).padStart(2, '0'); $('difficulty-pill').textContent = item.difficulty.toUpperCase();
-      $('analogy-type').textContent = item.type; $('question-title').textContent = item.prompt; $('score').textContent = String(score).padStart(3, '0');
+       $('challenge-label').textContent = challengeName(selectedChallenge).toUpperCase();
+       $('type-label').textContent = selectedChallenge === 'adjectives' ? 'TIPO DE ADJETIVO' : 'RELACIÓN';
+       $('analogy-type').textContent = item.type; $('question-title').textContent = item.prompt; $('score').textContent = String(score).padStart(3, '0');
+       $('tip-text').innerHTML = selectedChallenge === 'adjectives' ? `<strong>Pista:</strong><br />${escapeHtml(item.hint)}` : '<strong>Observa antes de elegir.</strong><br />Busca qué relación existe entre el primer par.';
        updateProgress(current);
       $('feedback').classList.add('hidden'); $('next-button').classList.add('hidden');
        $('options-list').innerHTML = item.options.map((option, index) => `<button class="option-button" type="button" data-index="${index}" aria-label="Opción ${String.fromCharCode(65 + index)}: ${option}"><span class="option-letter" aria-hidden="true">${String.fromCharCode(65 + index)}</span><span>${option}</span></button>`).join('');
@@ -216,7 +239,8 @@ import { analogies } from '../data/analogies';
           nombre: name,
           aciertos: correct,
           errores: totalQuestions - correct,
-          nivel: [...new Set(activeQuestions.map((item) => item.difficulty))].length === 1 ? activeQuestions[0].difficulty : 'Mixto',
+           nivel: [...new Set(activeQuestions.map((item) => item.difficulty))].length === 1 ? activeQuestions[0].difficulty : 'Mixto',
+           desafio: selectedChallenge,
           porcentaje: Math.round((correct / totalQuestions) * 100),
           puntaje: score,
           tiempo: 0
@@ -244,12 +268,12 @@ import { analogies } from '../data/analogies';
       }
 
       function showResults() {
-        quiz.classList.add('hidden'); results.classList.remove('hidden');
+        quiz.classList.add('hidden'); results.classList.remove('hidden'); history.classList.remove('hidden');
        const name = localStorage.getItem('yachay-student') || 'estudiante';
-       const previousBest = Number(localStorage.getItem('yachay-best-score') || 0);
+        const previousBest = Number(localStorage.getItem(`yachay-best-score-${selectedChallenge}`) || 0);
        const isBest = score >= previousBest;
-       localStorage.setItem('yachay-best-score', String(Math.max(score, previousBest)));
-       $('result-name').textContent = name; $('final-score').textContent = score;
+        localStorage.setItem(`yachay-best-score-${selectedChallenge}`, String(Math.max(score, previousBest)));
+        $('result-name').textContent = name; $('result-challenge').textContent = challengeName(selectedChallenge).toUpperCase(); $('final-score').textContent = score;
        $('final-correct').textContent = `${correct}/${totalQuestions}`;
         $('final-percent').textContent = `${Math.round((correct / totalQuestions) * 100)}%`;
         $('final-streak').textContent = bestStreak;
@@ -266,7 +290,12 @@ import { analogies } from '../data/analogies';
        }
        if (audioContext.state === 'suspended') audioContext.resume(); soundOn = !soundOn; masterGain.gain.value = soundOn ? 0.025 : 0; $('sound-toggle').setAttribute('aria-pressed', String(soundOn)); $('sound-label').textContent = soundOn ? 'Sonido activo' : 'Ambiente sonoro';
      }
-     $('student-name').value = localStorage.getItem('yachay-student') || '';
+      $('student-name').value = localStorage.getItem('yachay-student') || '';
+      document.querySelectorAll('input[name="challenge"]').forEach((option) => option.addEventListener('change', (event) => {
+        const challenge = event.target.value;
+        $('start-button').classList.remove('hidden');
+        $('challenge-selection-status').textContent = `Desafío seleccionado: ${challengeName(challenge)}. Ya puedes comenzar.`;
+      }));
      $('history-student-filter').addEventListener('change', (event) => renderHistory(event.target.value));
      renderHistory();
      $('start-button').addEventListener('click', startQuiz); $('next-button').addEventListener('click', nextQuestion); $('restart-button').addEventListener('click', startQuiz); $('sound-toggle').addEventListener('click', toggleSound); $('print-button').addEventListener('click', () => window.print());
